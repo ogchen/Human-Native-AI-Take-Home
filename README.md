@@ -71,7 +71,7 @@ The service can now be started with:
 ```bash
 python main.py
 ```
-By default, requests can be interactively sent to the service at http://localhost:8000/docs. Requests must be sent with the token "dummy_token" to be authenticated.
+By default, requests can be interactively sent to the service at http://localhost:8000/docs. Requests must be sent with the token "dummy_token" to be authenticated. As the email client is faked out, the resulting email is logged to console.
 
 Unit tests can be run with:
 ```bash
