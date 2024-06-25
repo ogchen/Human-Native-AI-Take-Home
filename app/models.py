@@ -1,3 +1,7 @@
+"""
+Models of data types stored in database.
+"""
+
 from pydantic import BaseModel
 from enum import auto
 from enum import StrEnum

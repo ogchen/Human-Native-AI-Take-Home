@@ -11,6 +11,10 @@ ENDPOINT = "/report/data_violation"
 
 @pytest.fixture
 def params():
+    """
+    Common test parameters.
+    """
+
     token = "valid_token"
     headers = {"Authorization": f"Bearer {token}"}
     publisher_org = {
@@ -73,6 +77,10 @@ def params():
 
 @pytest.fixture
 def report_client(test_client, mock_db_client, params):
+    """
+    Sets up the mock database to wrap around the common test parameters.
+    """
+
     mock_db_client.is_valid_token.side_effect = lambda token: params["token"] == token
     mock_db_client.is_permissioned_for_dataset.return_value = (
         lambda user, dataset_id: user.org_id == params["reporter_org"]["id"]
@@ -98,6 +106,9 @@ def report_client(test_client, mock_db_client, params):
 
 
 def test_report(report_client, mock_email_client, params):
+    """
+    Tests the success case, asserting various key details are in the resulting email.
+    """
     response = report_client.post(
         ENDPOINT, json=params["request"], headers=params["headers"]
     )
@@ -105,7 +116,7 @@ def test_report(report_client, mock_email_client, params):
     mock_email_client.send_email.assert_called_once()
     email_args = mock_email_client.send_email.call_args.kwargs
     assert email_args["recipient"] == params["publisher_org"]["email"]
-    assert params["request"]["dataset_id"] in email_args["body"]
+    assert params["dataset"]["name"] in email_args["body"]
     for example in params["request"]["examples"]:
         assert example["data_id"] in email_args["body"]
 
@@ -128,13 +139,22 @@ def test_report_malformed_request(report_client, params):
 
 def test_report_invalid_dataset_id(report_client, mock_db_client, params):
     params["request"]["dataset_id"] = "invalid dataset id"
-    response = report_client.post(ENDPOINT, json=params["request"], headers=params["headers"])
+    response = report_client.post(
+        ENDPOINT, json=params["request"], headers=params["headers"]
+    )
     mock_db_client.get_dataset.assert_called_once_with(params["request"]["dataset_id"])
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
+
 def test_report_invalid_data_id(report_client, mock_db_client, params):
     invalid_data_id = "invalid data id"
-    params["request"]["examples"].append({"data_id": invalid_data_id, "description": ""})
-    response = report_client.post(ENDPOINT, json=params["request"], headers=params["headers"])
-    mock_db_client.verify_data_id.assert_called_with(invalid_data_id, params["request"]["dataset_id"])
+    params["request"]["examples"].append(
+        {"data_id": invalid_data_id, "description": ""}
+    )
+    response = report_client.post(
+        ENDPOINT, json=params["request"], headers=params["headers"]
+    )
+    mock_db_client.verify_data_id.assert_called_with(
+        invalid_data_id, params["request"]["dataset_id"]
+    )
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY

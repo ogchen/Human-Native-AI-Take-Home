@@ -4,6 +4,10 @@ from app.models import User
 
 
 class DatabaseClient:
+    """
+    An unimplemented database interface.
+    """
+
     def get_user(self, username: str) -> User | None:
         raise NotImplementedError()
 

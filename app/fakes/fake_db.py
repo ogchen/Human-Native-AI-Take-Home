@@ -1,3 +1,7 @@
+"""
+Implements a DatabaseClient to provide a fake database.
+"""
+
 from app.db import DatabaseClient
 from app.models import Dataset
 from app.models import Organisation
@@ -22,7 +26,7 @@ FAKE_ORG_DB = {
         "id": "fake_blog_bot_org_id",
         "name": "Blog Bot",
         "email": "info@blogbot.com",
-    }
+    },
 }
 
 FAKE_DATASET_DB = {
@@ -63,6 +67,11 @@ FAKE_TOKEN_DB = {
 
 
 class FakeDatabaseClient(DatabaseClient):
+    """
+    A DatabaseClient wrapper around global variable dictionaries that simulate a database,
+    which are populated with fake data.
+    """
+
     def get_user(self, username: str):
         user_dict = FAKE_USER_DB.get(username)
         if user_dict is not None:
@@ -85,7 +94,10 @@ class FakeDatabaseClient(DatabaseClient):
             return Dataset(**dataset)
 
     def is_permissioned_for_dataset(self, user: User, dataset_id: str):
-        return user.org_id == "fake_blog_bot_org_id" and dataset_id == "fake_aurora_dataset_id"
+        return (
+            user.org_id == "fake_blog_bot_org_id"
+            and dataset_id == "fake_aurora_dataset_id"
+        )
 
     def get_org(self, org_id: str):
         org = FAKE_ORG_DB.get(org_id)

@@ -15,6 +15,9 @@ def verify_token(
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
     db: Annotated[DatabaseClient, Depends(get_db)],
 ):
+    """
+    Checks the incoming HTTP bearer token to see if it is valid.
+    """
     token = credentials.credentials
     if not db.is_valid_token(token):
         raise HTTPException(

@@ -6,6 +6,10 @@ logger = logging.getLogger("uvicorn")
 
 
 class FakeEmailClient(EmailClient):
+    """
+    Implements the EmailClient interface and logs any received email requests.
+    """
+
     def send_email(self, recipient: str, title: str, body: str):
         email = f"""
 Recipient: {recipient}

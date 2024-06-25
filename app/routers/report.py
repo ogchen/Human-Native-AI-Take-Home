@@ -1,3 +1,7 @@
+"""
+Handling logic for report requests.
+"""
+
 from abc import ABC
 from enum import auto
 from enum import StrEnum
@@ -22,6 +26,7 @@ from app.token import verify_token
 from app.users import get_user
 
 router = APIRouter(prefix="/report", dependencies=[Depends(verify_token)])
+
 
 class DataViolationCategoryEnum(StrEnum):
     PERSONAL_DATA = auto()
@@ -56,7 +61,10 @@ class DataViolationReport(BaseReport):
                     "category": "personal_data",
                     "dataset_id": "fake_aurora_dataset_id",
                     "examples": [
-                        {"data_id": "fake_aurora_data_id_0", "description": "Contains reference to phone numbers"},
+                        {
+                            "data_id": "fake_aurora_data_id_0",
+                            "description": "Contains reference to phone numbers",
+                        },
                         {"data_id": "fake_aurora_data_id_1"},
                     ],
                 }
@@ -69,7 +77,14 @@ class ValidatedDataViolationReport(DataViolationReport):
     dataset: Dataset
 
 
-def generate_readable_report(reporter: User, reporter_org: Organisation, report: ValidatedDataViolationReport):
+def generate_readable_report(
+    reporter: User, reporter_org: Organisation, report: ValidatedDataViolationReport
+):
+    """
+    Converts a ValidatedDataViolationReport object to a human readable report, formatting
+    the result to be sent out as an email.
+    """
+
     title = f"[Data Violation Alert] Report received for dataset '{report.dataset.name}': '{report.title}'"
     body = f"""
 A data violation issue has been reported.
@@ -82,7 +97,12 @@ Description:
     """
 
     if len(report.examples) > 0:
-        examples = "\n".join([f"    - ({example.data_id}): {example.description or 'No description'}" for example in report.examples])
+        examples = "\n".join(
+            [
+                f"    - ({example.data_id}): {example.description or 'No description'}"
+                for example in report.examples
+            ]
+        )
         body += f"""
 Examples:
 {examples}
@@ -93,6 +113,10 @@ Examples:
 def validate_report(
     report: DataViolationReport, db: Annotated[DatabaseClient, Depends(get_db)]
 ):
+    """
+    Checks the validity of the input report parameters, and raises a HTTP 422 status
+    code if an invalid parameter is provided.
+    """
     dataset = db.get_dataset(report.dataset_id)
     if not dataset:
         raise HTTPException(
@@ -115,6 +139,11 @@ async def report(
     email_client: Annotated[EmailClient, Depends(get_email_client)],
     db: Annotated[DatabaseClient, Depends(get_db)],
 ):
+    """
+    Main entry point for post data violation report requests. Checks permissioning
+    of the reporter and dataset in concern, and triggers the email client to send
+    the report to the data publisher.
+    """
     if not db.is_permissioned_for_dataset(reporter, report.dataset.id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -124,13 +153,13 @@ async def report(
     if publisher_org is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to find organisation details for dataset."
+            detail=f"Failed to find organisation details for dataset.",
         )
     reporter_org = db.get_org(reporter.org_id)
     if reporter_org is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to find organisation details for reporter."
+            detail=f"Failed to find organisation details for reporter.",
         )
     readable_report = generate_readable_report(reporter, reporter_org, report)
     email_client.send_email(recipient=publisher_org.email, **readable_report)

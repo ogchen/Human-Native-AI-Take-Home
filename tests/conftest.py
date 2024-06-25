@@ -8,6 +8,7 @@ from app.db import get_db
 from app.email import EmailClient
 from app.email import get_email_client
 
+
 class MockDatabaseClient(DatabaseClient):
     def __init__(self):
         self.get_user = MagicMock(return_value=None)
@@ -18,9 +19,11 @@ class MockDatabaseClient(DatabaseClient):
         self.is_permissioned_for_dataset = MagicMock(return_value=False)
         self.get_org = MagicMock(return_value=None)
 
+
 class MockEmailClient(EmailClient):
     def __init__(self):
         self.send_email = MagicMock()
+
 
 @pytest.fixture
 def mock_db_client():
@@ -29,12 +32,14 @@ def mock_db_client():
     yield mock
     del report_app.dependency_overrides[get_db]
 
+
 @pytest.fixture
 def mock_email_client():
     mock = MockEmailClient()
     report_app.dependency_overrides[get_email_client] = lambda: mock
     yield mock
     del report_app.dependency_overrides[get_email_client]
+
 
 @pytest.fixture
 def test_client(mock_email_client, mock_db_client):
