@@ -1,7 +1,25 @@
 # Overview
 A data violation reporting system, implemented using Python and FastAPI. Incoming reports are validated and converted into emails.
 
-Example email:
+Example request:
+```json
+{
+    "title": "Personally Identifiable Information Issue",
+    "description": "There are various examples of personal details in the Aurora Articles dataset.",
+    "report_type": "data_violation",
+    "category": "personal_data",
+    "dataset_id": "fake_aurora_dataset_id",
+    "examples": [
+        {
+            "data_id": "fake_aurora_data_id_0",
+            "description": "Contains reference to phone numbers",
+        },
+        {"data_id": "fake_aurora_data_id_1"},
+    ],
+}
+```
+
+Resulting email:
 ```
 Recipient: info@auroraarticles.com
 Title: [Data Violation Alert] Report received for dataset 'Aurora Articles Catalogue': 'Personally Identifiable Information Issue'
