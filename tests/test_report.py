@@ -82,7 +82,7 @@ def report_client(test_client, mock_db_client, params):
     """
 
     mock_db_client.is_valid_token.side_effect = lambda token: params["token"] == token
-    mock_db_client.is_permissioned_for_dataset.return_value = (
+    mock_db_client.is_permissioned_for_dataset.side_effect = (
         lambda user, dataset_id: user.org_id == params["reporter_org"]["id"]
         and dataset_id == params["dataset"]["id"]
     )
@@ -130,6 +130,16 @@ def test_report_unauthenticated(report_client, mock_db_client, params):
     )
     mock_db_client.is_valid_token.assert_called_once_with(invalid_token)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_report_unpermissioned_dataset(report_client, mock_db_client, params):
+    mock_db_client.is_permissioned_for_dataset.return_value = False
+    mock_db_client.is_permissioned_for_dataset.side_effect = None
+    response = report_client.post(
+        ENDPOINT, json=params["request"], headers=params["headers"]
+    )
+    mock_db_client.is_permissioned_for_dataset.assert_called_once()
+    assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 def test_report_malformed_request(report_client, params):

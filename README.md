@@ -43,7 +43,7 @@ Examples:
 - It is okay to send the reporter email address to the publisher. This allows the publisher to ask the reporter clarifying questions on the report.
 - There is no need to automatically action (e.g. hide/delete) any data violation report - would have to confirm with legal.
 - There is no need to automatically notify other organisations licensed for the violating dataset. They would be manually alerted after the report is confirmed.
-- This service is not frequently called. There is currently no rate limiting, and a issue on the reporter side could cause a publishing company to be spammed with emails.
+- This service is not frequently called. There is currently no rate limiting, and an issue on the reporter side could cause a publishing company to be spammed with emails.
 
 # Code Walkthrough
 - `main.py` - Provides the entrypoint, and is responsible for overriding the database and email clients to use
